@@ -1,0 +1,10 @@
+{
+  "mysql": {
+    "user": "",
+    "pass": "",
+    "host": "",
+    "port": ""
+  },
+  "host": "",
+  "port": ""
+}
