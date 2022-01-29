@@ -8,8 +8,10 @@ import (
 // Member 对应 members 表
 type Member struct {
 	gorm.Model
-	// 用户 ID, 昵称, 用户名, 密码
-	Nickname, Username, Password string
+	// 昵称, 用户名
+	Nickname, Username string
+	// 密码
+	Password []byte
 	// 用户类型
 	UserType types.UserType
 }
