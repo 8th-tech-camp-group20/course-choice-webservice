@@ -6,13 +6,18 @@ type MySQLConfig struct {
 	User, Pass, Host, Port string
 }
 
-func InitConfig() (*MySQLConfig, string, string) {
+// InitConfig 初始化配置
+// path 表示额外配置文件路径，如测试中指定配置文件路径
+func InitConfig(path ...string) (*MySQLConfig, string, string) {
 	// 设置配置文件信息
 	viper.SetConfigName("conf")
 	viper.SetConfigType("json")
 	// 设置配置文件目录
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("./config")
+	for i := range path {
+		viper.AddConfigPath(path[i])
+	}
 	// 读入配置文件
 	err := viper.ReadInConfig()
 	if err != nil {

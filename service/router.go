@@ -12,8 +12,8 @@ func RegisterRouter(r *gin.Engine) {
 	g.POST("/member/create", member.CreateMember)
 	g.GET("/member")
 	g.GET("/member/list")
-	g.POST("/member/update")
-	g.POST("/member/delete")
+	g.POST("/member/update", member.UpdateMember)
+	g.POST("/member/delete", member.DeleteMember)
 
 	// 登录
 
