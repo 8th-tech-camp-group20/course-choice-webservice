@@ -1,6 +1,7 @@
 package service
 
 import (
+	"course-choice-webservice/service/auth"
 	"course-choice-webservice/service/member"
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +18,7 @@ func RegisterRouter(r *gin.Engine) {
 
 	// 登录
 
-	g.POST("/auth/login")
+	g.POST("/auth/login", auth.Login)
 	g.POST("/auth/logout")
 	g.GET("/auth/whoami")
 
