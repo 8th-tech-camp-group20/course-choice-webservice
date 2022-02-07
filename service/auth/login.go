@@ -31,5 +31,6 @@ func Login(c *gin.Context) {
 	session := sessions.Default(c)
 	session.Set("camp-session", user.ID)
 	session.Save()
+	//fmt.Println(session.Get("camp-session"))
 	c.JSON(http.StatusOK, types.LoginResponse{Code: types.OK, Data: struct{ UserID string }{UserID: strconv.Itoa(int(user.ID))}})
 }
