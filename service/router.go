@@ -1,12 +1,13 @@
 package service
 
 import (
+	"course-choice-webservice/service/course"
 	"course-choice-webservice/service/member"
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterRouter(r *gin.Engine) {
-	g := r.Group("/api/v1")
+	g := r.Group("/api/v1") //TODO 建议这里改成空的，不然直接访问下面的接口访问不到
 
 	// 成员管理
 	g.POST("/member/create", member.CreateMember)
@@ -22,12 +23,12 @@ func RegisterRouter(r *gin.Engine) {
 	g.GET("/auth/whoami")
 
 	// 排课
-	g.POST("/course/create")
-	g.GET("/course/get")
+	g.POST("/course/create", course.CreateCourse)
+	g.GET("/course/get", course.GetCourse)
 
-	g.POST("/teacher/bind_course")
-	g.POST("/teacher/unbind_course")
-	g.GET("/teacher/get_course")
+	g.POST("/teacher/bind_course", course.BindCourse)
+	g.POST("/teacher/unbind_course", course.UnbindCourse)
+	g.GET("/teacher/get_course", course.GetTeacherCourse)
 	g.POST("/course/schedule")
 
 	// 抢课
