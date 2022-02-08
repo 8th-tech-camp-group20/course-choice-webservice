@@ -40,6 +40,7 @@ func GetTeacherCourse(c *gin.Context) {
 	var returnRes []*types.TCourse
 
 	for i := 0; i < len(teacherCourses); i++ {
+		fmt.Println("isThis")
 		var mid = types.TCourse{
 			CourseID:  strconv.FormatUint(uint64(teacherCourses[i].ID), 10),
 			Name:      teacherCourses[i].Name,
@@ -49,5 +50,8 @@ func GetTeacherCourse(c *gin.Context) {
 	}
 
 	fmt.Println("error3")
-	c.JSON(http.StatusOK, returnRes)
+	c.JSON(http.StatusOK, types.GetTeacherCourseResponse{
+		Code: types.OK,
+		Data: struct{ CourseList []*types.TCourse }{CourseList: returnRes},
+	})
 }

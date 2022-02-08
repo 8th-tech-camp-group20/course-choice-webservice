@@ -42,7 +42,7 @@ func UnbindCourse(c *gin.Context) {
 		return
 	}
 
-	updateRes := database.MysqlDB.Model(&model.Course{}).Where("id=?", unbindReq.CourseID).Update("teacher_id", 0)
+	updateRes := database.MysqlDB.Table("course").Model(&model.Course{}).Where("id=?", unbindReq.CourseID).Update("teacher_id", 0)
 
 	//更新失败
 	if updateRes.Error != nil {

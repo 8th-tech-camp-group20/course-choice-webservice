@@ -42,7 +42,7 @@ func BindCourse(c *gin.Context) {
 		return
 	}
 
-	updateRes := database.MysqlDB.Model(&model.Course{}).Where("id=?", bindReq.CourseID).Update("teacher_id", bindReq.TeacherID)
+	updateRes := database.MysqlDB.Table("course").Model(&model.Course{}).Where("id=?", bindReq.CourseID).Update("teacher_id", bindReq.TeacherID)
 
 	//更新失败
 	if updateRes.Error != nil {
