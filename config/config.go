@@ -9,13 +9,14 @@ type MySQLConfig struct {
 // InitConfig 初始化配置
 // path 表示额外配置文件路径，如测试中指定配置文件路径
 func InitConfig(path ...string) (*MySQLConfig, string, string) {
-	var debug = true
-	// 设置配置文件信息
-	if debug == false {
-		viper.SetConfigName("conf")
-	} else {
-		viper.SetConfigName("conf_local")
-	}
+	//var debug = true
+	//// 设置配置文件信息
+	//if debug == false {
+	//	viper.SetConfigName("conf")
+	//} else {
+	//	viper.SetConfigName("conf_local")
+	//}
+	viper.SetConfigName("conf")
 	viper.SetConfigType("json")
 	// 设置配置文件目录
 	viper.AddConfigPath(".")
