@@ -31,6 +31,8 @@ var paramInvalidGetStudentcourseResp = types.GetStudentCourseResponse{
 
 func GetStudentCourse(c *gin.Context) {
 	var req types.GetStudentCourseRequest
+	req.StudentID = c.Query("studentID")
+	fmt.Println(req.StudentID)
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -40,29 +42,17 @@ func GetStudentCourse(c *gin.Context) {
 }
 
 func getStudentCourseService(req *types.GetStudentCourseRequest) *types.GetStudentCourseResponse {
-	studentId, err := strconv.ParseUint(req.StudentID, 10, 0)
-	//var studentId = 1
-	fmt.Println(studentId)
+	studentId, err := strconv.ParseUint(req.StudentID, 10, 64)
 	if err != nil {
 		return &paramInvalidGetStudentcourseResp
 	}
-
-	// 从student_course表中找到对应的课程id
-
-	//获得学生id对应的Student_course结构体
-	//_ = database.MysqlDB.Table("student").Where("student_id=?", studentId).Find(&studentCourse)
-	//var teacherCourses []model.Course
-	//_ = database.MysqlDB.Table("course").Where("id=?", 1).Find(teacherCourses)
-	//fmt.Println(teacherCourses)
+	//查找学生的课程id
 	studentCourse := model.StudentCourse{}
+	//TODO 若学生ID不存在 返回错误类型11
 	_ = database.MysqlDB.Table("book_course").Where("student_id = ?", studentId).Find(&studentCourse)
-	//fmt.Println(studentCourse)
+	//TODO 若学生没有课程 返回错误类型13
 	courseIdList := strings.Split(studentCourse.CourseIdList, ",")
-	fmt.Println(courseIdList)
 	courseList := []types.TCourse{}
-
-	//_ = database.MysqlDB.Table("course").Where("id = ?", 1).Find(&thisCourse)
-	//fmt.Println(thisCourse)
 	for _, courseId := range courseIdList {
 		thisCourse := model.Course{}
 		course_id, _ := strconv.ParseInt(courseId, 10, 0)
@@ -77,17 +67,4 @@ func getStudentCourseService(req *types.GetStudentCourseRequest) *types.GetStude
 		Code: types.OK,
 		Data: struct{ CourseList []types.TCourse }{CourseList: courseList},
 	}
-
-	//_ = database.MysqlDB.Table()Find(studentCourse, "student_id = ?", studentId)
-	//提取结构体的Course_List 去掉逗号
-
-	//courseList := []types.TCourse{}
-	//for courseId := range courseIdList {
-	//	append(courseList, struct {
-	//		CourseID  string
-	//		Name      string
-	//		TeacherID string
-	//	}{CourseID: string(courseId), Name: "", TeacherID: ""})
-	//}
-
 }
