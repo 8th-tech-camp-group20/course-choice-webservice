@@ -31,6 +31,10 @@ var paramInvalidGetStudentcourseResp = types.GetStudentCourseResponse{
 
 func GetStudentCourse(c *gin.Context) {
 	var req types.GetStudentCourseRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	resp := getStudentCourseService(&req)
 	c.JSON(http.StatusOK, *resp)
 }
