@@ -18,7 +18,6 @@ var courseNotExitGetCourseResp = types.CreateCourseResponse{
 	Code: types.CourseNotExisted,
 }
 
-// TODO 待解决问题是参与排课的人的权限问题：创建、绑定解绑这些工作是管理员做还是老师就可以做
 func GetCourse(c *gin.Context) {
 	fmt.Println("hhh")
 	var getReq types.GetCourseRequest

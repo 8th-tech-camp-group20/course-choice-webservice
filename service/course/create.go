@@ -14,7 +14,6 @@ var paramInvalidCreateCourseResp = types.CreateCourseResponse{
 	Code: types.ParamInvalid,
 }
 
-// TODO 待解决问题是参与排课的人的权限问题：创建、绑定解绑这些工作是管理员做还是老师就可以做
 func CreateCourse(c *gin.Context) {
 	fmt.Println("hello")
 	var courseReq types.CreateCourseRequest

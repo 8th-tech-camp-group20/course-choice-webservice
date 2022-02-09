@@ -17,11 +17,17 @@ var courseHasBindResp = types.BindCourseResponse{
 	Code: types.CourseHasBound,
 }
 
+//TODO 目前使用teacherID=0标记绑定
 func BindCourse(c *gin.Context) {
 	fmt.Println("hhh")
 	var bindReq types.BindCourseRequest
 	if err := c.ShouldBindJSON(&bindReq); err != nil {
 		fmt.Println("error1")
+		c.JSON(http.StatusBadRequest, paramInvalidBindCourseResp)
+		return
+	}
+
+	if bindReq.TeacherID == "0" {
 		c.JSON(http.StatusBadRequest, paramInvalidBindCourseResp)
 		return
 	}
