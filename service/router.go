@@ -2,6 +2,7 @@ package service
 
 import (
 	"course-choice-webservice/service/member"
+	"course-choice-webservice/service/student"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,7 +32,7 @@ func RegisterRouter(r *gin.Engine) {
 	g.POST("/course/schedule")
 
 	// 抢课
-	g.POST("/student/book_course")
+	g.POST("/student/book_course", student.BookCourse)
 	g.GET("/student/course")
 
 }
