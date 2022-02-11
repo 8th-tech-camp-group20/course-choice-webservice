@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 var paramInvalidUnBindCourseResp = types.UnbindCourseResponse{
@@ -37,7 +38,7 @@ func UnbindCourse(c *gin.Context) {
 	}
 
 	//课程未绑定
-	if hasTeacher.TeacherId == 0 {
+	if hasTeacher.TeacherId == 0 || strconv.FormatUint(uint64(hasTeacher.TeacherId), 10) != unbindReq.TeacherID {
 		c.JSON(http.StatusBadRequest, courseNotBindResp)
 		return
 	}
