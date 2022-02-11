@@ -5,14 +5,19 @@ import (
 	"course-choice-webservice/model"
 	"course-choice-webservice/types"
 	"crypto/sha256"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
 	"net/http"
 	"strconv"
 )
 
-var paramInvalidCreateMemberResp = types.CreateMemberResponse{
-	Code: types.ParamInvalid,
-}
+var (
+	paramInvalidCreateMemberResp = types.CreateMemberResponse{
+		Code: types.ParamInvalid,
+	}
+	unknownCreateMemberResp = types.CreateMemberResponse{Code: types.UnknownError}
+)
 
 func CreateMember(c *gin.Context) {
 	var req types.CreateMemberRequest
@@ -20,12 +25,22 @@ func CreateMember(c *gin.Context) {
 		c.JSON(http.StatusOK, paramInvalidCreateMemberResp)
 		return
 	}
+	// 获取用户 ID 以判断权限
+	session := sessions.Default(c)
+	uid := session.Get("camp-session")
+	if uid == nil {
+		c.JSON(http.StatusOK, types.CreateMemberResponse{Code: types.LoginRequired})
+		return
+	}
+	if !isAdmin(uid) {
+		c.JSON(http.StatusOK, types.CreateMemberResponse{Code: types.PermDenied})
+		return
+	}
 	resp := createMemberService(&req)
 	c.JSON(http.StatusOK, *resp)
 }
 
 func createMemberService(req *types.CreateMemberRequest) *types.CreateMemberResponse {
-	// TODO 只有管理员才能添加
 	if l := len(req.Nickname); l < 4 || l > 20 {
 		return &paramInvalidCreateMemberResp
 	}
@@ -49,7 +64,16 @@ func createMemberService(req *types.CreateMemberRequest) *types.CreateMemberResp
 	}
 	result := database.MysqlDB.Create(&member)
 	if result.Error != nil {
-		panic(result.Error)
+		if mysqlErr, ok := result.Error.(*mysql.MySQLError); ok {
+			if mysqlErr.Number == 1062 {
+				// 用户已存在
+				return &types.CreateMemberResponse{Code: types.UserHasExisted}
+			} else {
+				return &unknownCreateMemberResp
+			}
+		} else {
+			return &unknownCreateMemberResp
+		}
 	}
 	return &types.CreateMemberResponse{
 		Code: types.OK,
@@ -70,4 +94,16 @@ func validPassword(p string) bool {
 		}
 	}
 	return hasUpper && hasLower && hasNumber
+}
+
+// isAdmin 根据 Cookie 信息判断用户身份
+func isAdmin(cookie interface{}) bool {
+	apiUser := struct {
+		UserType types.UserType
+	}{}
+	result := database.MysqlDB.Model(&model.Member{}).Find(&apiUser, cookie)
+	if result.RowsAffected == 0 || apiUser.UserType != types.Admin {
+		return false
+	}
+	return true
 }
