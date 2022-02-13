@@ -67,6 +67,7 @@ func TestGetList(t *testing.T) {
 		nickname, username, password string
 		usertype                     types.UserType
 	}{
+		{"JudgeAdmin", "JudgeAdmin", "JudgePassword2022", types.Admin},
 		{"66666", "rust-language", "Rust1Language", types.Student},
 		{"88888", "go-language", "Go1Language", types.Student},
 		{"99999", "java-language", "Java1Language", types.Student},
@@ -77,8 +78,10 @@ func TestGetList(t *testing.T) {
 	}()
 	err := global.Transaction(func(tx *gorm.DB) error {
 		database.MysqlDB = tx
-		userIds := make([]string, 0, 3)
-		for i := range tests {
+		userIds := make([]string, 1, 4)
+		// Admin 用户为系统预设, ID 为 69
+		userIds[0] = "69"
+		for i := 1; i < len(tests); i++ {
 			resp := createMemberService(&types.CreateMemberRequest{
 				Nickname: tests[i].nickname,
 				Username: tests[i].username,
