@@ -1,5 +1,4 @@
 package student
-
 import (
 	"course-choice-webservice/database"
 	"course-choice-webservice/model"
@@ -86,3 +85,4 @@ func getStudentCourseService(req *types.GetStudentCourseRequest) *types.GetStude
 		Data: struct{ CourseList []types.TCourse }{CourseList: courseList},
 	}
 }
+

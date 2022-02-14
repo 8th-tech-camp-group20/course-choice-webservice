@@ -46,6 +46,12 @@ func TestCreate(t *testing.T) {
 		if resp.Code != types.OK {
 			t.Errorf("resp.Code = %v, expect %v", resp.Code, types.OK)
 		}
+		resp = createMemberService(&types.CreateMemberRequest{
+			Nickname: "66666", Username: "rust-language", Password: "Rust1Language", UserType: types.Student,
+		})
+		if resp.Code != types.UserHasExisted {
+			t.Errorf("resp.Code = %v, expect %v", resp.Code, types.UserHasExisted)
+		}
 		// 返回错误以 Rollback
 		return errors.New("rollback txn")
 	})
