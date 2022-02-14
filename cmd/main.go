@@ -12,9 +12,11 @@ import (
 
 func main() {
 	// 加载配置项
-	dbConf, host, port := config.InitConfig()
+	dbConf, rConf, host, port := config.InitConfig()
 	// 设置数据库
 	database.InitDB(dbConf)
+	database.InitRedis(rConf)
+
 	eng := gin.Default()
 	//设置session midddleware
 	store := cookie.NewStore([]byte("secret"))

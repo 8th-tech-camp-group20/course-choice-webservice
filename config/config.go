@@ -6,9 +6,13 @@ type MySQLConfig struct {
 	User, Pass, Host, Port string
 }
 
+type RedisConfig struct {
+	Type, Address string
+}
+
 // InitConfig 初始化配置
 // path 表示额外配置文件路径，如测试中指定配置文件路径
-func InitConfig(path ...string) (*MySQLConfig, string, string) {
+func InitConfig(path ...string) (*MySQLConfig, *RedisConfig, string, string) {
 	//var debug = true
 	//// 设置配置文件信息
 	//if debug == false {
@@ -36,6 +40,10 @@ func InitConfig(path ...string) (*MySQLConfig, string, string) {
 		Host: viper.GetString("mysql.host"),
 		Port: viper.GetString("mysql.port"),
 	}
+	RedisConf := &RedisConfig{
+		Type:    viper.GetString("redis.type"),
+		Address: viper.GetString("redis.address"),
+	}
 	host, port := viper.GetString("host"), viper.GetString("port")
-	return MySQLConf, host, port
+	return MySQLConf, RedisConf, host, port
 }
