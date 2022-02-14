@@ -61,29 +61,7 @@ func bookCourseService(req *types.BookCourseRequest) *types.BookCourseResponse {
 		fmt.Println("redis get exist failed:", err)
 	}
 
-	if ex {
-		//redis中有key 为 courseId 的项就读出courseId对应的容量剩余数
-		count, err := redis.Int(rc.Do("GET", courseId))
-		if err != nil {
-			fmt.Println("redis get failed:", err)
-		}
-		//剩余数>0就减一，返回抢课成功
-		if count > 0 {
-			_, err = rc.Do("DECR", courseId)
-			if err != nil {
-				fmt.Println("redis decr failed:", err)
-			}
-			bookSuccess(studentId, courseId)
-			return &types.BookCourseResponse{
-				Code: types.OK,
-			}
-		} else {
-			//该courseId对应count为0，返回课程已选满
-			return &types.BookCourseResponse{
-				Code: types.CourseNotAvailable,
-			}
-		}
-	} else {
+	if !ex {
 		//redis中没有key 为 courseId 的项就从数据库读出其对应的容量
 		thisCourse := model.Course{}
 		rows := database.MysqlDB.Table("course").Where("id=?", courseId).Find(&thisCourse).RowsAffected
@@ -93,19 +71,35 @@ func bookCourseService(req *types.BookCourseRequest) *types.BookCourseResponse {
 				Code: types.CourseNotExisted,
 			}
 		} else {
-			//第一个抢课的人抢到课
-			if thisCourse.Cap > 0 {
-				thisCourse.Cap--
-			}
-			//容量写入redis，返回抢课成功
+			//容量写入redis
 			_, err = rc.Do("SET", courseId, thisCourse.Cap)
 			if err != nil {
 				fmt.Println("redis set failed:", err)
 			}
-			bookSuccess(studentId, courseId)
-			return &types.BookCourseResponse{
-				Code: types.OK,
-			}
+		}
+	}
+	//redis中有key 为 courseId 的项就读出courseId对应的容量剩余数
+	count, err := redis.Int(rc.Do("GET", courseId))
+	if err != nil {
+		fmt.Println("redis get failed:", err)
+	}
+	count, err = redis.Int(rc.Do("DECR", courseId))
+	if err != nil {
+		fmt.Println("redis decr failed:", err)
+	}
+	//剩余数<0，返回抢课失败
+	if count < 0 {
+		_, err = rc.Do("INCR", courseId)
+		if err != nil {
+			fmt.Println("redis incr failed:", err)
+		}
+		return &types.BookCourseResponse{
+			Code: types.CourseNotAvailable,
+		}
+	} else {
+		bookSuccess(studentId, courseId)
+		return &types.BookCourseResponse{
+			Code: types.OK,
 		}
 	}
 }
