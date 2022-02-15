@@ -188,7 +188,7 @@ type CreateCourseResponse struct {
 // 获取课程
 // Method: Get
 type GetCourseRequest struct {
-	CourseID string
+	CourseID string `form:"CourseID"`
 }
 
 type GetCourseResponse struct {
@@ -223,7 +223,7 @@ type UnbindCourseResponse struct {
 // 获取老师下所有课程
 // Method：Get
 type GetTeacherCourseRequest struct {
-	TeacherID string
+	TeacherID string `form:"TeacherID"`
 }
 
 type GetTeacherCourseResponse struct {

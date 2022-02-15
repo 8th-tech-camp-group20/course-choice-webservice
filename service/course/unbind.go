@@ -23,7 +23,7 @@ func UnbindCourse(c *gin.Context) {
 	var unbindReq types.UnbindCourseRequest
 	if err := c.ShouldBindJSON(&unbindReq); err != nil {
 		fmt.Println("error1")
-		c.JSON(http.StatusBadRequest, paramInvalidUnBindCourseResp)
+		c.JSON(http.StatusOK, paramInvalidUnBindCourseResp)
 		return
 	}
 
@@ -33,13 +33,13 @@ func UnbindCourse(c *gin.Context) {
 
 	//课程不存在
 	if findRes.Error != nil {
-		c.JSON(http.StatusBadRequest, courseNotExitGetCourseResp)
+		c.JSON(http.StatusOK, courseNotExitGetCourseResp)
 		return
 	}
 
 	//课程未绑定
 	if hasTeacher.TeacherId == 0 || strconv.FormatUint(uint64(hasTeacher.TeacherId), 10) != unbindReq.TeacherID {
-		c.JSON(http.StatusBadRequest, courseNotBindResp)
+		c.JSON(http.StatusOK, courseNotBindResp)
 		return
 	}
 
@@ -47,7 +47,7 @@ func UnbindCourse(c *gin.Context) {
 
 	//更新失败
 	if updateRes.Error != nil {
-		c.JSON(http.StatusBadRequest, types.BindCourseResponse{Code: types.CourseNotExisted})
+		c.JSON(http.StatusOK, types.BindCourseResponse{Code: types.CourseNotExisted})
 		return
 	}
 

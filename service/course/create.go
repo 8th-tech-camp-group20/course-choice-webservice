@@ -18,12 +18,12 @@ func CreateCourse(c *gin.Context) {
 	fmt.Println("hello")
 	var courseReq types.CreateCourseRequest
 	if err := c.ShouldBindJSON(&courseReq); err != nil {
-		c.JSON(http.StatusBadRequest, paramInvalidCreateCourseResp)
+		c.JSON(http.StatusOK, paramInvalidCreateCourseResp)
 		return
 	}
 	if l := len(courseReq.Name); l < 1 || courseReq.Cap < 0 {
 		fmt.Println("error2")
-		c.JSON(http.StatusBadRequest, paramInvalidCreateCourseResp)
+		c.JSON(http.StatusOK, paramInvalidCreateCourseResp)
 		return
 	}
 
@@ -39,7 +39,7 @@ func CreateCourse(c *gin.Context) {
 
 	//插入失败
 	if createRes.Error != nil {
-		c.JSON(http.StatusBadRequest, paramInvalidCreateCourseResp)
+		c.JSON(http.StatusOK, paramInvalidCreateCourseResp)
 		return
 	}
 

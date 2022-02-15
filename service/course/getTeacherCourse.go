@@ -21,9 +21,9 @@ var courseNotExitTeacherCourseResp = types.GetTeacherCourseResponse{
 func GetTeacherCourse(c *gin.Context) {
 	fmt.Println("hhh")
 	var teacherReq types.GetTeacherCourseRequest
-	if err := c.ShouldBindJSON(&teacherReq); err != nil {
+	if err := c.ShouldBindQuery(&teacherReq); err != nil {
 		fmt.Println("error1")
-		c.JSON(http.StatusBadRequest, paramInvalidTeacherCourseResp)
+		c.JSON(http.StatusOK, paramInvalidTeacherCourseResp)
 		return
 	}
 
@@ -33,7 +33,7 @@ func GetTeacherCourse(c *gin.Context) {
 
 	//查找失败
 	if getTeacherRes.Error != nil {
-		c.JSON(http.StatusBadRequest, courseNotExitTeacherCourseResp)
+		c.JSON(http.StatusOK, courseNotExitTeacherCourseResp)
 		return
 	}
 

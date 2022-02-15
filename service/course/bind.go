@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 var paramInvalidBindCourseResp = types.BindCourseResponse{
@@ -23,12 +24,12 @@ func BindCourse(c *gin.Context) {
 	var bindReq types.BindCourseRequest
 	if err := c.ShouldBindJSON(&bindReq); err != nil {
 		fmt.Println("error1")
-		c.JSON(http.StatusBadRequest, paramInvalidBindCourseResp)
+		c.JSON(http.StatusOK, paramInvalidBindCourseResp)
 		return
 	}
 
 	if bindReq.TeacherID == "0" {
-		c.JSON(http.StatusBadRequest, paramInvalidBindCourseResp)
+		c.JSON(http.StatusOK, paramInvalidBindCourseResp)
 		return
 	}
 
@@ -37,14 +38,14 @@ func BindCourse(c *gin.Context) {
 	findRes := database.MysqlDB.Table("course").Where("id=?", bindReq.CourseID).Find(&hasTeacher)
 
 	//课程不存在
-	if findRes.Error != nil {
-		c.JSON(http.StatusBadRequest, courseNotExitGetCourseResp)
+	if findRes.Error != nil || strconv.FormatUint(uint64(hasTeacher.ID), 10) != bindReq.CourseID {
+		c.JSON(http.StatusOK, courseNotExitGetCourseResp)
 		return
 	}
 
 	//课程已经绑定
 	if hasTeacher.TeacherId != 0 {
-		c.JSON(http.StatusBadRequest, courseHasBindResp)
+		c.JSON(http.StatusOK, courseHasBindResp)
 		return
 	}
 
@@ -52,7 +53,7 @@ func BindCourse(c *gin.Context) {
 
 	//更新失败
 	if updateRes.Error != nil {
-		c.JSON(http.StatusBadRequest, types.BindCourseResponse{Code: types.CourseNotExisted})
+		c.JSON(http.StatusOK, types.BindCourseResponse{Code: types.CourseNotExisted})
 		return
 	}
 

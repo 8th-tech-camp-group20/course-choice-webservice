@@ -38,7 +38,7 @@ func GetSchedule(c *gin.Context) {
 	var scheReq types.ScheduleCourseRequest
 	if err := c.ShouldBindJSON(&scheReq); err != nil {
 		fmt.Println("error1")
-		c.JSON(http.StatusBadRequest, paramInvalidScheduleResp)
+		c.JSON(http.StatusOK, paramInvalidScheduleResp)
 		return
 	}
 
