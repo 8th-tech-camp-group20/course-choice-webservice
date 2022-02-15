@@ -2,6 +2,7 @@ package service
 
 import (
 	"course-choice-webservice/service/auth"
+	"course-choice-webservice/service/course"
 	"course-choice-webservice/service/member"
 	"course-choice-webservice/service/student"
 	"github.com/gin-gonic/gin"
@@ -24,13 +25,13 @@ func RegisterRouter(r *gin.Engine) {
 	g.GET("/auth/whoami", auth.Whoami)
 
 	// 排课
-	g.POST("/course/create")
-	g.GET("/course/get")
+	g.POST("/course/create", course.CreateCourse)
+	g.GET("/course/get", course.GetCourse)
 
-	g.POST("/teacher/bind_course")
-	g.POST("/teacher/unbind_course")
-	g.GET("/teacher/get_course")
-	g.POST("/course/schedule")
+	g.POST("/teacher/bind_course", course.BindCourse)
+	g.POST("/teacher/unbind_course", course.UnbindCourse)
+	g.GET("/teacher/get_course", course.GetTeacherCourse)
+	g.POST("/course/schedule", course.GetSchedule)
 
 	// 抢课
 	g.POST("/student/book_course", student.BookCourse)
