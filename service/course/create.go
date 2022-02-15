@@ -44,6 +44,7 @@ func CreateCourse(c *gin.Context) {
 	}
 
 	//将课程id和容量压入redis
+
 	rc := database.RedisClient.Get()
 	defer rc.Close()
 	_, err := rc.Do("SET", strconv.FormatUint(uint64(newCourse.ID), newCourse.Cap))
