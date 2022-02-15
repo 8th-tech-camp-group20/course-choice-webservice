@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 )
@@ -31,25 +32,6 @@ func bookCourseService(req *types.BookCourseRequest) *types.BookCourseResponse {
 		return &paramInvalidBookCourseRequest
 	}
 	courseId := req.CourseID
-	//先根据studentId查信息
-	//stu := model.Member{
-	//	Model: gorm.Model{
-	//		ID: uint(studentId),
-	//	},
-	//}
-	//rows := database.MysqlDB.First(&stu, "id = ?", studentId).RowsAffected
-	//////查询的信息为空，返回学生不存在
-	//if rows != 0 {
-	//	return &types.BookCourseResponse{
-	//		Code: types.StudentNotExisted,
-	//	}
-	//}
-	//////该studentId对应type不为student，返回无权限
-	//if stu.UserType != types.Student {
-	//	return &types.BookCourseResponse{
-	//		Code: types.PermDenied,
-	//	}
-	//}
 	//再根据courseId查信息
 
 	rc := database.RedisClient.Get()
@@ -72,7 +54,7 @@ func bookCourseService(req *types.BookCourseRequest) *types.BookCourseResponse {
 			}
 		} else {
 			//容量写入redis
-			_, err = rc.Do("SET", courseId, thisCourse.Cap)
+			_, err = rc.Do("SETNX", courseId, thisCourse.Cap)
 			if err != nil {
 				fmt.Println("redis set failed:", err)
 			}
@@ -97,7 +79,34 @@ func bookCourseService(req *types.BookCourseRequest) *types.BookCourseResponse {
 			Code: types.CourseNotAvailable,
 		}
 	} else {
-		bookSuccess(studentId, courseId)
+		//根据studentId查信息
+		stu := model.Member{
+			Model: gorm.Model{
+				ID: uint(studentId),
+			},
+		}
+		rows := database.MysqlDB.First(&stu, "id = ?", studentId).RowsAffected
+		//查询的信息为空，返回学生不存在
+		if rows == 0 {
+			_, err = rc.Do("INCR", courseId)
+			if err != nil {
+				fmt.Println("redis incr failed:", err)
+			}
+			return &types.BookCourseResponse{
+				Code: types.StudentNotExisted,
+			}
+		}
+		////该studentId对应type不为student，返回无权限
+		if stu.UserType != types.Student {
+			_, err = rc.Do("INCR", courseId)
+			if err != nil {
+				fmt.Println("redis incr failed:", err)
+			}
+			return &types.BookCourseResponse{
+				Code: types.PermDenied,
+			}
+		}
+		//bookSuccess(studentId, courseId)
 		return &types.BookCourseResponse{
 			Code: types.OK,
 		}
