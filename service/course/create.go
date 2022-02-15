@@ -43,6 +43,14 @@ func CreateCourse(c *gin.Context) {
 		return
 	}
 
+	//将课程id和容量压入redis
+	rc := database.RedisClient.Get()
+	defer rc.Close()
+	_, err := rc.Do("SET", strconv.FormatUint(uint64(newCourse.ID), newCourse.Cap))
+	if err != nil {
+		fmt.Println("redis set failed:", err)
+	}
+
 	var returnRes = types.CreateCourseResponse{
 		Code: types.OK,
 		Data: struct{ CourseID string }{CourseID: strconv.FormatUint(uint64(newCourse.ID), 10)},
