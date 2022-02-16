@@ -42,7 +42,6 @@ func CreateCourse(c *gin.Context) {
 		c.JSON(http.StatusOK, paramInvalidCreateCourseResp)
 		return
 	}
-
 	var returnRes = types.CreateCourseResponse{
 		Code: types.OK,
 		Data: struct{ CourseID string }{CourseID: strconv.FormatUint(uint64(newCourse.ID), 10)},

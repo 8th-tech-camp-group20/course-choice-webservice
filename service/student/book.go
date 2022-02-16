@@ -4,6 +4,8 @@ import (
 	"course-choice-webservice/database"
 	"course-choice-webservice/model"
 	"course-choice-webservice/types"
+	"fmt"
+	"github.com/garyburd/redigo/redis"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
@@ -30,49 +32,97 @@ func bookCourseService(req *types.BookCourseRequest) *types.BookCourseResponse {
 		return &paramInvalidBookCourseRequest
 	}
 	courseId := req.CourseID
-	//先根据studentId查信息
-	stu := model.Member{
-		Model: gorm.Model{
-			ID: uint(studentId),
-		},
+
+	rc := database.RedisClient.Get()
+	defer rc.Close()
+
+	//flag, err := redis.Int(rc.Do("GET", courseId+"flag"))
+	//if err != nil {
+	//	fmt.Println("redis get failed:", err)
+	//}
+	//if flag == 0 {
+	//	return &types.BookCourseResponse{
+	//		Code: types.CourseNotAvailable,
+	//	}
+	//}
+
+	//判断redis中是否有key 为 courseId 的项
+	ex, err := redis.Bool(rc.Do("EXISTS", courseId))
+	if err != nil {
+		fmt.Println("redis get exist failed:", err)
 	}
-	rows := database.MysqlDB.First(&stu, "id = ?", studentId).RowsAffected
-	////查询的信息为空，返回学生不存在
-	if rows != 0 {
-		return &types.BookCourseResponse{
-			Code: types.StudentNotExisted,
-		}
-	}
-	////该studentId对应type不为student，返回无权限
-	if stu.UserType != types.Student {
-		return &types.BookCourseResponse{
-			Code: types.PermDenied,
-		}
-	}
-	//再根据courseId查信息
-	thisCourse := model.Course{}
-	rows = database.MysqlDB.Table("course").Where("id=?", courseId).Find(&thisCourse).RowsAffected
-	//查询的信息为空，返回课程不存在
-	if rows == 0 {
-		return &types.BookCourseResponse{
-			Code: types.CourseNotExisted,
-		}
-	} else {
-		//该courseId对应cap_remain为0，返回课程已选满
-		if thisCourse.CapRemain == 0 {
+
+	if !ex {
+		//redis中没有key 为 courseId 的项就从数据库读出其对应的容量
+		thisCourse := model.Course{}
+		rows := database.MysqlDB.Table("course").Where("id=?", courseId).Find(&thisCourse).RowsAffected
+		//查询的信息为空，返回课程不存在
+		if rows == 0 {
 			return &types.BookCourseResponse{
-				Code: types.CourseNotAvailable,
+				Code: types.CourseNotExisted,
+			}
+		} else {
+			//容量写入redis
+			_, err = rc.Do("SETNX", courseId, thisCourse.Cap)
+			if err != nil {
+				fmt.Println("redis set failed:", err)
 			}
 		}
 	}
-
-	//studentId、courseId都合法，就选中成功
-	//courseId对应的课程cap_remain - 1
-	thisCourse.CapRemain--
-	database.MysqlDB.Table("course").Where("id = ?", courseId).Update("cap_remain", thisCourse.CapRemain)
-	bookSuccess(studentId, courseId)
-	return &types.BookCourseResponse{
-		Code: types.OK,
+	//redis中有key 为 courseId 的项就读出courseId对应的容量剩余数
+	count, err := redis.Int(rc.Do("GET", courseId))
+	if err != nil {
+		fmt.Println("redis get failed:", err)
+	}
+	count, err = redis.Int(rc.Do("DECR", courseId))
+	if err != nil {
+		fmt.Println("redis decr failed:", err)
+	}
+	//剩余数<0，返回抢课失败
+	if count < 0 {
+		_, err = rc.Do("INCR", courseId)
+		if err != nil {
+			fmt.Println("redis incr failed:", err)
+		}
+		_, err = rc.Do("SET", courseId+"flag", 0)
+		if err != nil {
+			fmt.Println("redis set failed:", err)
+		}
+		return &types.BookCourseResponse{
+			Code: types.CourseNotAvailable,
+		}
+	} else {
+		//根据studentId查信息
+		stu := model.Member{
+			Model: gorm.Model{
+				ID: uint(studentId),
+			},
+		}
+		rows := database.MysqlDB.First(&stu, "id = ?", studentId).RowsAffected
+		//查询的信息为空，返回学生不存在
+		if rows == 0 {
+			_, err = rc.Do("INCR", courseId)
+			if err != nil {
+				fmt.Println("redis incr failed:", err)
+			}
+			return &types.BookCourseResponse{
+				Code: types.StudentNotExisted,
+			}
+		}
+		////该studentId对应type不为student，返回无权限
+		if stu.UserType != types.Student {
+			_, err = rc.Do("INCR", courseId)
+			if err != nil {
+				fmt.Println("redis incr failed:", err)
+			}
+			return &types.BookCourseResponse{
+				Code: types.PermDenied,
+			}
+		}
+		bookSuccess(studentId, courseId)
+		return &types.BookCourseResponse{
+			Code: types.OK,
+		}
 	}
 }
 
