@@ -1,4 +1,5 @@
 package student
+
 import (
 	"course-choice-webservice/database"
 	"course-choice-webservice/model"
@@ -54,7 +55,6 @@ func getStudentCourseService(req *types.GetStudentCourseRequest) *types.GetStude
 	if err != nil {
 		return &paramInvalidGetStudentcourseResp
 	}
-
 	member := model.Member{}
 	//若学生ID不存在 返回错误类型11
 	result1 := database.MysqlDB.Table("members").Where("id=?", studentId).First(&member)
@@ -85,4 +85,3 @@ func getStudentCourseService(req *types.GetStudentCourseRequest) *types.GetStude
 		Data: struct{ CourseList []types.TCourse }{CourseList: courseList},
 	}
 }
-
