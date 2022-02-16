@@ -32,10 +32,19 @@ func bookCourseService(req *types.BookCourseRequest) *types.BookCourseResponse {
 		return &paramInvalidBookCourseRequest
 	}
 	courseId := req.CourseID
-	//再根据courseId查信息
 
 	rc := database.RedisClient.Get()
 	defer rc.Close()
+
+	//flag, err := redis.Int(rc.Do("GET", courseId+"flag"))
+	//if err != nil {
+	//	fmt.Println("redis get failed:", err)
+	//}
+	//if flag == 0 {
+	//	return &types.BookCourseResponse{
+	//		Code: types.CourseNotAvailable,
+	//	}
+	//}
 
 	//判断redis中是否有key 为 courseId 的项
 	ex, err := redis.Bool(rc.Do("EXISTS", courseId))
@@ -75,6 +84,10 @@ func bookCourseService(req *types.BookCourseRequest) *types.BookCourseResponse {
 		if err != nil {
 			fmt.Println("redis incr failed:", err)
 		}
+		_, err = rc.Do("SET", courseId+"flag", 0)
+		if err != nil {
+			fmt.Println("redis set failed:", err)
+		}
 		return &types.BookCourseResponse{
 			Code: types.CourseNotAvailable,
 		}
@@ -106,7 +119,7 @@ func bookCourseService(req *types.BookCourseRequest) *types.BookCourseResponse {
 				Code: types.PermDenied,
 			}
 		}
-		//bookSuccess(studentId, courseId)
+		bookSuccess(studentId, courseId)
 		return &types.BookCourseResponse{
 			Code: types.OK,
 		}
