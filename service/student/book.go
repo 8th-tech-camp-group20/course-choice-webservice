@@ -51,8 +51,6 @@ func bookCourseService(req *types.BookCourseRequest) *types.BookCourseResponse {
 		fmt.Println("redis sadd failed:", err)
 	}
 
-	println(ex)
-
 	if ex {
 		return &types.BookCourseResponse{
 			Code: types.StudentHasCourse,
