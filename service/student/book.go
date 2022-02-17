@@ -46,8 +46,21 @@ func bookCourseService(req *types.BookCourseRequest) *types.BookCourseResponse {
 	//	}
 	//}
 
+	ex, err := redis.Bool(rc.Do("SISMEMBER", "student"+req.StudentID, courseId))
+	if err != nil {
+		fmt.Println("redis sadd failed:", err)
+	}
+
+	println(ex)
+
+	if ex {
+		return &types.BookCourseResponse{
+			Code: types.StudentHasCourse,
+		}
+	}
+
 	//判断redis中是否有key 为 courseId 的项
-	ex, err := redis.Bool(rc.Do("EXISTS", courseId))
+	ex, err = redis.Bool(rc.Do("EXISTS", courseId))
 	if err != nil {
 		fmt.Println("redis get exist failed:", err)
 	}
@@ -120,6 +133,10 @@ func bookCourseService(req *types.BookCourseRequest) *types.BookCourseResponse {
 			}
 		}
 		bookSuccess(studentId, courseId)
+		_, err = rc.Do("SADD", "student"+req.StudentID, courseId)
+		if err != nil {
+			fmt.Println("redis sadd failed:", err)
+		}
 		return &types.BookCourseResponse{
 			Code: types.OK,
 		}
